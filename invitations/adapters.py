@@ -24,14 +24,17 @@ class BaseInvitationsAdapter(object):
         request.session['account_verified_email'] = None
         return ret
 
-    def format_email_subject(self, subject):
+    def format_email_subject(self, subject, request=None):
         prefix = app_settings.EMAIL_SUBJECT_PREFIX
         if prefix is None:
-            site = Site.objects.get_current()
+            if request:
+                site = Site.objects.get_current(request=request)
+            else:
+                site = Site.objects.get_current()
             prefix = "[{name}] ".format(name=site.name)
         return prefix + force_text(subject)
 
-    def render_mail(self, template_prefix, email, context):
+    def render_mail(self, template_prefix, email, context, request=None):
         """
         Renders an e-mail to `email`.  `template_prefix` identifies the
         e-mail that is to be sent, e.g. "account/email/email_confirmation"
@@ -40,7 +43,7 @@ class BaseInvitationsAdapter(object):
                                    context)
         # remove superfluous line breaks
         subject = " ".join(subject.splitlines()).strip()
-        subject = self.format_email_subject(subject)
+        subject = self.format_email_subject(subject, request=request)
 
         bodies = {}
         for ext in ['html', 'txt']:
@@ -67,8 +70,8 @@ class BaseInvitationsAdapter(object):
             msg.content_subtype = 'html'  # Main content is now text/html
         return msg
 
-    def send_mail(self, template_prefix, email, context):
-        msg = self.render_mail(template_prefix, email, context)
+    def send_mail(self, template_prefix, email, context, request=None):
+        msg = self.render_mail(template_prefix, email, context, request=request)
         msg.send()
 
     def is_open_for_signup(self, request):

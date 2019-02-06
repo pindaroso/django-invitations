@@ -42,7 +42,12 @@ class Invitation(AbstractBaseInvitation):
         return expiration_date <= timezone.now()
 
     def send_invitation(self, request, **kwargs):
-        current_site = kwargs.pop('site', Site.objects.get_current())
+        try:
+            current_site = kwargs.pop('site', Site.objects.get_current())
+        except Exception:
+            current_site = kwargs.pop('site',
+                                      Site.objects.get_current(request=request))
+
         invite_url = reverse('invitations:accept-invite',
                              args=[self.key])
         invite_url = request.build_absolute_uri(invite_url)
@@ -60,7 +65,8 @@ class Invitation(AbstractBaseInvitation):
         get_invitations_adapter().send_mail(
             email_template,
             self.email,
-            ctx)
+            ctx,
+            request=request)
         self.sent = timezone.now()
         self.save()
 
