@@ -48,7 +48,7 @@ class Invitation(AbstractBaseInvitation):
             current_site = kwargs.pop('site',
                                       Site.objects.get_current(request=request))
 
-        invite_url = reverse('invitations:accept-invite',
+        invite_url = reverse(app_settings.COMFIRMATION_VIEWNAME,
                              args=[self.key])
         invite_url = request.build_absolute_uri(invite_url)
         ctx = kwargs
